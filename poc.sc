@@ -39,13 +39,19 @@ def buildEsClient(username: String, password: String): Session =
     verifySslCerts = false
   )
 
-def putEsUser(username: String, roles: Seq[String]): EsUser =
+def putEsUser(
+    username: String,
+    roles: Seq[String],
+    assignInverseRoles: Boolean = true
+): EsUser =
   val password = generateRandStr()
   rootEsClient.put(
     url = s"$baseUrl/_security/user/$username",
     data = ujson.Obj(
       "password" -> password,
-      "roles" -> roles.flatMap(r => Seq(r, inverse(r)))
+      "roles" -> (if assignInverseRoles then
+                    roles.flatMap(r => Seq(r, inverse(r)))
+                  else roles)
     )
   )
   EsUser(username, buildEsClient(username, password))
@@ -104,11 +110,13 @@ def putEsRole(appPrivName: String, resources: Seq[String])(
   )
 
 def isAuthorised(esUser: EsUser, objectIdToActions: (String, String)*) =
-  def canDo(
+  def isAuthorised(
       hasPrivsRespBody: ujson.Value
   )(objId: String, action: String): Boolean =
     val objAuthzChecks = hasPrivsRespBody("application")(appName)(objId)
-    !objAuthzChecks(inverse(action)).bool && objAuthzChecks(action).bool
+    def canDo(action: String): Boolean =
+      objAuthzChecks(action).bool
+    !canDo(inverse(action)) && canDo(action)
   val hasPrivsRequestBody = ujson.Obj(
     "application" -> objectIdToActions.map: (obj, action) =>
       ujson.Obj(
@@ -117,12 +125,13 @@ def isAuthorised(esUser: EsUser, objectIdToActions: (String, String)*) =
         "resources" -> ujson.Arr(obj)
       )
   )
+  // https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-has-privileges.html
   val hasPrivsResp = esUser.client.post(
     url = s"$baseUrl/_security/user/_has_privileges",
     data = hasPrivsRequestBody
   )
   val hasPrivsRespBody = ujson.read(hasPrivsResp.bytes)
-  objectIdToActions.forall(canDo(hasPrivsRespBody))
+  objectIdToActions.forall(isAuthorised(hasPrivsRespBody))
 
 def runTests(): Unit =
   println("🧪 Running tests...")

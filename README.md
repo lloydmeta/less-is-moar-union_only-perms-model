@@ -16,7 +16,7 @@ backends, but this repo holds a demo that only interfaces with ES and its Securi
 {authorised\_total}_{0..n}(object) = \sum_{a=0}^{n}can\_do_n(object) + ({-1} \cdot(can\_do_{n^{-1}}(object)) \\
 
 {authorised}_{0..n}(object) = \begin{cases}
-    1 & \text{if } {authorised\_total}_{0..n}(object) = n \\
+     1 & \text{if } {authorised\_total}_{0..n}(object) = n \\
      0 & \text{otherwise.}
 \end{cases}
 \end{gather*}
@@ -24,7 +24,11 @@ backends, but this repo holds a demo that only interfaces with ES and its Securi
 
 <sub>There is probably a way to express the above in terms of multiplication, but addition <em>feels</em> more straightforward a mapping..</sub>
 
-The `isAuthorised` function in `poc.sc` demonstrates an implementation of the above.
+The `isAuthorised` function in `poc.sc` demonstrates an implementation of the above building on
+* [Users](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-user.html)
+* [AppPrivileges](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-privileges.html)
+* [Roles](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html)
+* [_has_privileges](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-has-privileges.html) call.
 
 ## Running the PoC
 
