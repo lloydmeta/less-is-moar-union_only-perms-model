@@ -135,8 +135,14 @@ def isAuthorised(esUser: EsUser, objectIdToActions: (String, String)*) =
 
 def runTests(): Unit =
   println("🧪 Running tests...")
+
   val deplId = generateRandStr()
-  // Check that the user has the expected right to edit any given deployment
+
+  // Check that a rando user can't access anything
+  val randoUser = putEsUser(generateRandStr(), Seq.empty, false)
+  assert(!isAuthorised(randoUser, deplId -> editDeplAction))
+
+  // Check that the support user has the expected right to edit any given deployment
   assert(isAuthorised(supportEsUser, deplId -> editDeplAction))
 
   // Add the deployment to the *inverted* Role
