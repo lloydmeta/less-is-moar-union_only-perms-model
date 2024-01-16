@@ -121,7 +121,7 @@ def isAuthorised(esUser: EsUser, objectIdToActions: (String, String)*) =
     url = s"$baseUrl/_security/user/_has_privileges",
     data = hasPrivsRequestBody
   )
-  val hasPrivsRespBody = ujson.read(hasPrivsResp.text)
+  val hasPrivsRespBody = ujson.read(hasPrivsResp.bytes)
   objectIdToActions.forall(canDo(hasPrivsRespBody))
 
 def runTests(): Unit =
