@@ -9,17 +9,19 @@ backends, but this repo holds a demo that only interfaces with ES and its Securi
 ### Basic premise
 
 * If we make the result of each action permission check for an actor and object a vector (magnitude with direction): that is: 0, 1 or -1, we can “subtract by adding”.
-* That is, assuming that if there is a `can_do0` function that checks permissions for action `0` that returns `0` if the input actor does _not_ have permission to perform action `0` on the input object, and `1` otherwise, there is _also_ a function that checks for the inverse, let's say `can_do0_inv` that returns `1` if the input actor has been explicitly _disallowed_ from doing action `0` on the input object.
+* If we only have booleans (1 or 0), assuming that there is a `can_do` function that returns `0` if the "current" actor does _not_ have permission to perform action<sub>0</sub> on the input object, and `1` otherwise, and it can also do so for an "inverse" action, let's say action<sub>0</sub><sup>-1</sup> if the input actor has been explicitly _disallowed_ from doing action<sub>0</sub> on the input object.
 
 ```math
-\begin{gather*}
-{authorised\_total}_{0..n}(object) = \sum_{a=0}^{n}can\_do_n(object) + ({-1} \cdot(can\_do_{n^{-1}}(object)) \\
+\begin{align*}
 
-{authorised}_{0..n}(object) = \begin{cases}
-     1 & \text{if } {authorised\_total}_{0..n}(object) = n \\
-     0 & \text{otherwise.}
+{authorised\_total_{actor}}(action_{0..n}, object) &= \sum_{a=0}^{n}(can\_do_{actor}(action_0, object)\text{ } + \\&\text{ }(-1 \cdot can\_do_{actor}(action_0^{-1}, object)))\\\\
+
+
+{authorised}_{actor}(action_{0..n}, object) &= \begin{cases}
+    1 & \text{if } {authorised\_total_{actor}}(action_{0..n}, object) = n \\
+    0 & \text{otherwise.}
 \end{cases}
-\end{gather*}
+\end{align*}
 ```
 
 <sub>There is probably a way to express the above in terms of multiplication, but addition <em>feels</em> more straightforward a mapping..</sub>
